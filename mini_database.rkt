@@ -65,9 +65,18 @@
 ;= | III  | II       | Baze de date                      |             5 |          0 |      =
 ;= +------+----------+-----------------------------------+---------------+------------+      =
 ;============================================================================================
-(define db
-  (add-table (add-table (init-database) (create-table "Studenți" '("Număr matricol" "Nume" "Prenume" "Grupă" "Medie")))
-             (create-table "Cursuri" '("Anul" "Semestru" "Disciplină" "Număr credite" "Număr teme"))))
+(define db '(("Studenți"
+   (("Număr matricol" 123 124 125 126)
+    ("Nume" "Ionescu" "Popescu" "Popa" "Georgescu")
+    ("Prenume" "Gigel" "Maria" "Ionel" "Ioana")
+    ("Grupă" "321CA" "321CB" "321CC" "321CD")
+    ("Medie" 9.82 9.91 9.99 9.87)))
+  ("Cursuri"
+   (("Anul" "I" "II" "III" "IV" "I" "III")
+    ("Semestru" "I" "II" "I" "I" "II" "II")
+    ("Disciplină" "Programarea calculatoarelor" "Paradigme de programare" "Algoritmi paraleli și distribuiți" "Inteligență artificială" "Structuri de date" "Baze de date")
+    ("Număr credite" 5 6 5 6 5 5)
+    ("Număr teme" 2 3 3 3 3 0)))))
             
 
 ;====================================
@@ -209,60 +218,34 @@
 ;=            Natural Join          =
 ;=            20 de puncte          =
 ;====================================
+(define merge-column-value-tables
+  (λ (tables)
+    (foldl (λ (table big-table)
+             (let ([get-table-columns (λ(name-value) (car name-value))])
+               (let ([table-columns (map get-table-columns (car table))] [big-table-columns (map get-table-columns (car big-table))])
+                 (let ([common-columns (filter (λ(column) (member column big-table-columns)) table-columns)])
+                   (let ([new-columns (filter (λ(column) (not (member column common-columns))) table-columns)])
+                     (let ([get-new-columns (λ(found-row)
+                                          (if (null? found-row)
+                                              found-row
+                                              (if (>= (length (car found-row)) (length common-columns))
+                                                  (filter (λ(name-value) (not (member (car name-value) common-columns))) (car found-row))
+                                                  '())))]
+                           [merge-new-columns (λ(row columns-to-add)
+                                               (if (null? columns-to-add)
+                                                   (append row (map (λ(column) (cons column NULL)) new-columns))
+                                                   (append row columns-to-add)))]
+                           [get-row-column-value (λ(row column) (cdar (filter (λ(name-value) (eq? (car name-value) column)) row)))])
+                       (map (λ(row-in-big-table)
+                              (let ([found-row-in-table (filter-column-value-pairs table (map (λ(common-column) (list eq? common-column (get-row-column-value row-in-big-table common-column))) common-columns) #f)])
+                                (merge-new-columns row-in-big-table (get-new-columns found-row-in-table)))) big-table))))))) (car tables) (cdr tables))))
+(define filter-null-values
+  (λ (column-value-table)
+    (filter (λ (row)
+              (andmap (λ (name-value)
+                        (not (eq? (cdr name-value) NULL))) row)) column-value-table)))
+
 (define natural-join
   (λ (db tables columns conditions)
-    'your-code-here))
-
-;====================================
-;=           Fill database          =
-;====================================
-(set! db (insert db "Studenți" (list '("Nume" . "Ionescu")
-                            '("Prenume" . "Gigel")
-                            '("Număr matricol" . 123)
-                            '("Grupă" . "321CA")
-                            '("Medie" . 9.82))))
-(set! db (insert db "Studenți" (list '("Nume" . "Popescu")
-                            '("Prenume" . "Maria")
-                            '("Număr matricol" . 124)
-                            '("Grupă" . "321CB")
-                            '("Medie" . 9.91))))
-(set! db (insert db "Studenți" (list '("Nume" . "Popa")
-                            '("Prenume" . "Ionel")
-                            '("Număr matricol" . 125)
-                            '("Grupă" . "321CC")
-                            '("Medie" . 9.99))))
-(set! db (insert db "Studenți" (list '("Nume" . "Georgescu")
-                            '("Prenume" . "Ioana")
-                            '("Număr matricol" . 126)
-                            '("Grupă" . "321CD")
-                            '("Medie" . 9.87))))
-(set! db (insert db "Cursuri" (list '("Anul" . "I")
-                            '("Semestru" . "I")
-                            '("Disciplină" . "Programarea calculatoarelor")
-                            '("Număr credite" . 5)
-                            '("Număr teme" . 2))))
-(set! db (insert db "Cursuri" (list '("Anul" . "II")
-                            '("Semestru" . "II")
-                            '("Disciplină" . "Paradigme de programare")
-                            '("Număr credite" . 6)
-                            '("Număr teme" . 3))))
-(set! db (insert db "Cursuri" (list '("Anul" . "III")
-                            '("Semestru" . "I")
-                            '("Disciplină" . "Algoritmi paraleli și distribuiți")
-                            '("Număr credite" . 5)
-                            '("Număr teme" . 3))))
-(set! db (insert db "Cursuri" (list '("Anul" . "IV")
-                            '("Semestru" . "I")
-                            '("Disciplină" . "Inteligență artificială")
-                            '("Număr credite" . 6)
-                            '("Număr teme" . 3))))
-(set! db (insert db "Cursuri" (list '("Anul" . "I")
-                            '("Semestru" . "II")
-                            '("Disciplină" . "Structuri de date")
-                            '("Număr credite" . 5)
-                            '("Număr teme" . 3))))
-(set! db (insert db "Cursuri" (list '("Anul" . "III")
-                            '("Semestru" . "II")
-                            '("Disciplină" . "Baze de date")
-                            '("Număr credite" . 5)
-                            '("Număr teme" . 0))))
+    (select-table-columns (remake-table-columns (filter-column-value-pairs (filter-null-values (merge-column-value-tables (map (λ(table-name)
+                                                                                                             (make-column-value-pairs (get-table db table-name))) tables))) conditions #f)) columns)))
