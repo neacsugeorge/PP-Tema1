@@ -95,7 +95,10 @@
 ;====================================
 (define simple-select
   (λ (db table-name columns)
-    'your-code-here))
+    (map (λ (column)
+           (cdr (car (filter (λ (table-column) (equal? column (car table-column))) (car (cdr (get-table db table-name))))))) columns)))
+                       
+           
 
 ;====================================
 ;=            Cerința 3 b)          =
@@ -132,3 +135,57 @@
 (define natural-join
   (λ (db tables columns conditions)
     'your-code-here))
+
+;====================================
+;=           Fill database          =
+;====================================
+(set! db (insert db "Studenți" (list '("Nume" . "Ionescu")
+                            '("Prenume" . "Gigel")
+                            '("Număr matricol" . 123)
+                            '("Grupa" . "321CA")
+                            '("Medie" . 9.82))))
+(set! db (insert db "Studenți" (list '("Nume" . "Popescu")
+                            '("Prenume" . "Maria")
+                            '("Număr matricol" . 124)
+                            '("Grupa" . "321CB")
+                            '("Medie" . 9.91))))
+(set! db (insert db "Studenți" (list '("Nume" . "Popa")
+                            '("Prenume" . "Ionel")
+                            '("Număr matricol" . 125)
+                            '("Grupa" . "321CC")
+                            '("Medie" . 9.99))))
+(set! db (insert db "Studenți" (list '("Nume" . "Georgescu")
+                            '("Prenume" . "Ioana")
+                            '("Număr matricol" . 126)
+                            '("Grupa" . "321CD")
+                            '("Medie" . 9.87))))
+(set! db (insert db "Cursuri" (list '("Anul" . "I")
+                            '("Semestru" . "I")
+                            '("Disciplină" . "Programarea calculatoarelor")
+                            '("Număr credite" . 5)
+                            '("Număr teme" . 2))))
+(set! db (insert db "Cursuri" (list '("Anul" . "II")
+                            '("Semestru" . "II")
+                            '("Disciplină" . "Paradigme de programare")
+                            '("Număr credite" . 6)
+                            '("Număr teme" . 3))))
+(set! db (insert db "Cursuri" (list '("Anul" . "III")
+                            '("Semestru" . "I")
+                            '("Disciplină" . "Algoritmi paraleli și distribuiți")
+                            '("Număr credite" . 5)
+                            '("Număr teme" . 3))))
+(set! db (insert db "Cursuri" (list '("Anul" . "IV")
+                            '("Semestru" . "I")
+                            '("Disciplină" . "Inteligență artificială")
+                            '("Număr credite" . 6)
+                            '("Număr teme" . 3))))
+(set! db (insert db "Cursuri" (list '("Anul" . "I")
+                            '("Semestru" . "II")
+                            '("Disciplină" . "Structuri de date")
+                            '("Număr credite" . 5)
+                            '("Număr teme" . 3))))
+(set! db (insert db "Cursuri" (list '("Anul" . "III")
+                            '("Semestru" . "II")
+                            '("Disciplină" . "Baze de date")
+                            '("Număr credite" . 5)
+                            '("Număr teme" . 0))))
