@@ -95,8 +95,8 @@
 ;====================================
 (define simple-select
   (λ (db table-name columns)
-    (map (λ (column)
-           (cdr (car (filter (λ (table-column) (equal? column (car table-column))) (car (cdr (get-table db table-name))))))) columns)))
+    (filter (λ(lst) (not (null? lst))) (map (λ (column)
+           (cdar (filter (λ (table-column) (equal? column (car table-column))) (cadr (get-table db table-name))))) columns))))
                        
            
 
@@ -126,19 +126,22 @@
     (cdr (apply map (append (list (λ args
                                     (map (λ (column value) (cons column value)) (get-columns table) args))) (cadr table))))))
 (define filter-column-value-pairs
-  (λ (table conditions)
+  (λ (table conditions invert-conditions)
     (filter (λ (row)
-              (andmap (λ (condition)
+              (let ([result (andmap (λ (condition)
                      (let ([c-comparator (car condition)] [c-column (cadr condition)] [c-value (caddr condition)])
                        (apply c-comparator (list (cdar (filter (λ (one-pair)
-                                                                 (eq? (car one-pair) c-column)) row)) c-value)))) conditions)) table)))
+                                                                 (eq? (car one-pair) c-column)) row)) c-value)))) conditions)])
+                (if invert-conditions (not result) result))) table)))
 
 (define remake-table-columns
   (λ (rows)
-    (map (λ (column-name column-values)
+    (if (null? rows)
+        '()
+        (map (λ (column-name column-values)
            (cons column-name column-values)) (map (λ (name-value-pair)
                                                     (car name-value-pair)) (car rows)) (apply map (append (list (λ args (map (λ (one-pair)
-                                                                                                                               (cdr one-pair)) args))) rows)))))
+                                                                                                                               (cdr one-pair)) args))) rows))))))
 (define remake-table
   (λ (column-value-table table-name)
     (cons table-name (list column-value-table))))
@@ -154,7 +157,7 @@
 
 (define select
   (λ (db table-name columns conditions)
-    (select-table-columns (remake-table-columns (filter-column-value-pairs (make-column-value-pairs (get-table db table-name)) conditions)) columns)))
+    (select-table-columns (remake-table-columns (filter-column-value-pairs (make-column-value-pairs (get-table db table-name)) conditions #f)) columns)))
 
 ;====================================
 ;=             Cerința 4            =
@@ -187,9 +190,19 @@
 ;=           Operația remove        =
 ;=              10 puncte           =
 ;====================================
+
 (define delete
   (λ (db table-name conditions)
-    'your-code-here))
+    (map (λ (table)
+           (if (eq? (car table) table-name)
+               (let ([empty-table (create-table table-name (get-columns table))])
+                 (if (null? conditions)
+                     empty-table
+                     (let ([table-columns (remake-table-columns (filter-column-value-pairs (make-column-value-pairs table) conditions #t))])
+                       (if (null? table-columns)
+                           empty-table
+                           (remake-table table-columns table-name)))))
+               table)) db)))
 
 ;====================================
 ;=               Bonus              =
