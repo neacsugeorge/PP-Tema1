@@ -139,6 +139,9 @@
            (cons column-name column-values)) (map (λ (name-value-pair)
                                                     (car name-value-pair)) (car rows)) (apply map (append (list (λ args (map (λ (one-pair)
                                                                                                                                (cdr one-pair)) args))) rows)))))
+(define remake-table
+  (λ (column-value-table table-name)
+    (cons table-name (list column-value-table))))
 (define select-table-columns
   (λ (columns operations)
     (map (λ (operation)
@@ -158,9 +161,26 @@
 ;=           Operația update        =
 ;=            20 de puncte          =
 ;====================================
+(define replace-in-column-value-pairs
+  (λ (table values conditions)
+    (map (λ (row)
+           (let ([is-in-query ((λ (row)
+              (andmap (λ (condition)
+                     (let ([c-comparator (car condition)] [c-column (cadr condition)] [c-value (caddr condition)])
+                       (apply c-comparator (list (cdar (filter (λ (one-pair)
+                                                                 (eq? (car one-pair) c-column)) row)) c-value)))) conditions)) row)])
+             (if is-in-query
+                 (map (λ(name-value)
+                        (let ([new-value (filter (λ(value) (eq? (car value) (car name-value))) values)])
+                          (if (> (length new-value) 0) (cons (car name-value) (cdar new-value)) name-value))) row)
+                 row))) table)))
+
 (define update
   (λ (db table-name values conditions)
-    'your-code-here))
+    (map (λ (table)
+           (if (eq? (car table) table-name)
+               (remake-table (remake-table-columns (replace-in-column-value-pairs (make-column-value-pairs table) values conditions)) table-name)
+               table)) db)))
 
 ;====================================
 ;=             Cerința 5            =
