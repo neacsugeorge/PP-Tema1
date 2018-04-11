@@ -105,9 +105,53 @@
 ;=           Operația select        =
 ;=            30 de puncte          =
 ;====================================
+(define average
+  (λ (nums)
+    (/ (apply + nums) (length nums))))
+(define column-operations (list
+                           (cons 'min (λ (arr) (apply min arr)))
+                           (cons 'max (λ (arr) (apply max arr)))
+                           (cons 'count (λ (arr) (length (remove-duplicates arr))))
+                           (cons 'sum (λ (arr) (apply + arr)))
+                           (cons 'avg (λ (arr) (apply average (list arr))))
+                           (cons 'sort-asc (λ (arr) (apply sort (list arr <))))
+                           (cons 'sort-desc (λ (arr) (apply sort (list arr >))))))
+(define column-operation
+  (λ (func params)
+    (apply (cdr (car (filter (λ (name-func)
+                          (eq? (car name-func) func)) column-operations))) (list params))))
+
+(define make-column-value-pairs
+  (λ (table)
+    (cdr (apply map (append (list (λ args
+                                    (map (λ (column value) (cons column value)) (get-columns table) args))) (cadr table))))))
+(define filter-column-value-pairs
+  (λ (table conditions)
+    (filter (λ (row)
+              (andmap (λ (condition)
+                     (let ([c-comparator (car condition)] [c-column (cadr condition)] [c-value (caddr condition)])
+                       (apply c-comparator (list (cdar (filter (λ (one-pair)
+                                                                 (eq? (car one-pair) c-column)) row)) c-value)))) conditions)) table)))
+
+(define remake-table-columns
+  (λ (rows)
+    (map (λ (column-name column-values)
+           (cons column-name column-values)) (map (λ (name-value-pair)
+                                                    (car name-value-pair)) (car rows)) (apply map (append (list (λ args (map (λ (one-pair)
+                                                                                                                               (cdr one-pair)) args))) rows)))))
+(define select-table-columns
+  (λ (columns operations)
+    (map (λ (operation)
+           (let ([column (if (pair? operation) (cdr operation) operation)] [operation-name (if (pair? operation) (car operation) #f)])
+             (let ([selected-column (car (filter (λ (full-column)
+                                                   (eq? (car full-column) column)) columns))])
+               (if operation-name
+                   (column-operation operation-name (cdr selected-column))
+                   (cdr selected-column))))) operations)))
+
 (define select
   (λ (db table-name columns conditions)
-    'your-code-here))
+    (select-table-columns (remake-table-columns (filter-column-value-pairs (make-column-value-pairs (get-table db table-name)) conditions)) columns)))
 
 ;====================================
 ;=             Cerința 4            =
@@ -142,22 +186,22 @@
 (set! db (insert db "Studenți" (list '("Nume" . "Ionescu")
                             '("Prenume" . "Gigel")
                             '("Număr matricol" . 123)
-                            '("Grupa" . "321CA")
+                            '("Grupă" . "321CA")
                             '("Medie" . 9.82))))
 (set! db (insert db "Studenți" (list '("Nume" . "Popescu")
                             '("Prenume" . "Maria")
                             '("Număr matricol" . 124)
-                            '("Grupa" . "321CB")
+                            '("Grupă" . "321CB")
                             '("Medie" . 9.91))))
 (set! db (insert db "Studenți" (list '("Nume" . "Popa")
                             '("Prenume" . "Ionel")
                             '("Număr matricol" . 125)
-                            '("Grupa" . "321CC")
+                            '("Grupă" . "321CC")
                             '("Medie" . 9.99))))
 (set! db (insert db "Studenți" (list '("Nume" . "Georgescu")
                             '("Prenume" . "Ioana")
                             '("Număr matricol" . 126)
-                            '("Grupa" . "321CD")
+                            '("Grupă" . "321CD")
                             '("Medie" . 9.87))))
 (set! db (insert db "Cursuri" (list '("Anul" . "I")
                             '("Semestru" . "I")
