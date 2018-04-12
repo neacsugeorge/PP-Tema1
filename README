@@ -1,0 +1,54 @@
+George Neacsu - 321CD - 12/04/2018 - 02:46:23
+
+Baza de date este o lista de tabele.
+Tabelele sunt formate dintr-un identificator si o lista de coloane.
+Coloanele sunt formate dintr-un identificator si N valori, fiecare corespunzatoare unei inregistrari.
+
+Astfel baza de date poate fi usor scrisa de mana.
+In continuare o sa ma uit din nou pe cod sa vad ce Doamne iarta-ma am facut.
+
+Nu o sa stau sa zic ce am facut la fiecare functie precum init-database, create-table.
+
+Mi-am creat un helper(make-column-value-pairs) care transforma un tabel din reprezentarea de mai sus
+intr-o lista de row-uri de forma ((NumeColoana1 . ValoareColoana1) ...)
+
+Apoi mi-am creat o functie care filtreaza noul tip de tabel. (filter-column-value-pairs)
+
+Apoi mi-am creat o functie care transforma un tabel cu inregistrari pereche intr-o lista de coloane
+cum se foloseste in forma originala a tabelelor. (remake-tabel-columns)
+
+Apoi o functie remake-table care zici ca e un create-table doar ca de data asta o sa aiba si valori
+
+Mai avem o functie select-table-columns care ia coloanele cu valori (din forma originala a unui tabel)
+si aplica o operatiile cerute (min, max etc).
+
+Pentru select, operatiile sunt salvate intr-o lista cu elemente de forma (literal . functie) si avem
+o functie care cauta si aplica operatie potrivita cu parametrii potriviti.
+
+Pentru update se refolosesc o parte din functiile facute pentru select + o functie noua
+replace-in-column-value-pairs. Primeste un tabel cu inregistrare de forma ((coloana . valoare_coloana) ..)
+si da replace doar la coloanele specificate.
+
+Cand am ajuns la delete am modificat filter-column-value-pairs si i-am adaugat acel parametru
+conform caruia neaga rezultatul aplicarii conditiilor (invert-conditions) . Inainte nu-l avea
+
+Am fost obligat sa fac si bonusul deoarece m-am apucat prea tarziu de tema (in urma cu cateva ore).
+La natural-join am fost super sadic si obosit, imi cer scuze de pe acum pentru durerile de cap
+provocate. Eram prea concentrat incat nu voiam sa am probleme cu parantezele, asa ca pentru fiecare
+chestie am mai bagat un let, sau o variabila in let in loc sa imi fac helper-i separati.
+Target-ul meu era sa faca matching pe toate coloanele comune si din ce am testat pare sa mearga
+sau sunt prea obosit sa realizez. Checker-ul zice 124 de puncte.
+
+Testul meu pentru natural-join cu 2 coloane comune:
+(define db-test '(("Studenți"
+   (("Număr matricol" 123 124 125 126)
+    ("Nume" "Ionescu" "Popescu" "Popa" "Georgescu")
+    ("Prenume" "Gigel" "Maria" "Ionel" "Ioana")
+    ("Grupă" "321" "321" "321" "321")
+    ("Serie" "CA" "CB" "CC" "CD")
+    ("Medie" 9.82 9.91 9.99 9.87)))
+  ("Grupe"
+   (("Grupă" "321" "321" "321" NULL)
+    ("Serie" "CA" "CB" "CC" "CD")
+    ("Nume grupă" "Albinuțe" "Floricele" "Lalele" "Zambile")))))
+(natural-join db-test '("Studenți" "Grupe") '("Nume" "Prenume" "Nume grupă") '())
